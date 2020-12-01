@@ -1,0 +1,61 @@
+## importing libs
+import sqlite3
+from sqlite3 import Error
+
+## creating connection with database file (actual DB file is declared in main_funct())
+def create_connection(dbfile):
+    conn = None
+    try:
+        conn = sqlite3.connect(dbfile)
+        ## return conn var so it can be used outside of this function
+        return conn
+    except Error as e:
+        print(e)
+
+
+## creating table function (solely for expandability, table_str is defined in main_funct())
+def create_table(conn, table_str):
+    try: 
+        curs = conn.cursor()
+        curs.execute(table_str)
+    except Error as e:
+        print(e)
+
+## inserting passwords and other linked values such as service, user_name, and email into DB
+
+def ins_passwords(conn, passwords):
+    sql = 'INSERT INTO passwords(service,user_name,email,password) VALUES(?,?,?,?)'
+    curs = conn.cursor()
+    curs.execute(sql, passwords)
+    conn.commit()
+    return curs.lastrowid
+
+## main function that declares DB file, table-create SQL instructions, primary conn script and table creation, and calls the password insert function
+
+def main_funct(service, user_name, email, password):
+    database = r'/home/adrian/sqlitetest/passwordtest.db'
+
+
+    ## SQL commands to create password table in DB
+    passwords_table = 'CREATE TABLE IF NOT EXISTS passwords (id PRIMARY KEY, service text NOT NULL, user_name text NOT NULL, email text NOT NULL, password text NOT NULL);'
+    
+
+
+    conn = create_connection(database)
+
+    ## python commands to run create_table function using passwords_table SQL defined above 
+    if conn is not None:
+        create_table(conn, passwords_table)
+    else:
+        print('unable to create table, connection is not established')
+    
+    ## passwords var is the overall encompassing variable that defines what service, u/n, email, and password to insert, each var must be declared or else an error will occur
+    
+    try:
+        passwords = (service,user_name,email,password)
+        passwords_id = ins_passwords(conn, passwords)
+    except:
+        print('table insert requires 4 items, not enough were passed')
+
+if __name__ == '__main__':
+    main_funct()
